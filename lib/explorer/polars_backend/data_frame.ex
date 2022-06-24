@@ -150,6 +150,24 @@ defmodule Explorer.PolarsBackend.DataFrame do
     end
   end
 
+  @impl true
+  def from_ipc_streaming(filename, columns) do
+    {columns, projection} = column_list_check(columns)
+
+    case Native.df_read_ipc_streaming(filename, columns, projection) do
+      {:ok, df} -> {:ok, Shared.create_dataframe(df)}
+      {:error, error} -> {:error, error}
+    end
+  end
+
+  @impl true
+  def to_ipc_streaming(%DataFrame{data: df}, filename, compression) do
+    case Native.df_write_ipc_streaming(df, filename, compression) do
+      {:ok, _} -> {:ok, filename}
+      {:error, error} -> {:error, error}
+    end
+  end
+
   # Conversion
 
   @impl true

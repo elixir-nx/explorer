@@ -65,6 +65,7 @@ rustler::init!(
         df_pivot_wider,
         df_read_csv,
         df_read_ipc,
+        df_read_ipc_stream,
         df_read_parquet,
         df_read_ndjson,
         df_write_ndjson,
@@ -84,6 +85,7 @@ rustler::init!(
         df_width,
         df_with_columns,
         df_write_ipc,
+        df_write_ipc_stream,
         df_write_parquet,
         // lazyframe
         lf_collect,

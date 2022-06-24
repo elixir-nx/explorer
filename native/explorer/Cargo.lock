@@ -57,9 +57,9 @@ checksum = "bf7d0a018de4f6aa429b9d33d69edf69072b1c5b1cb8d3e4a5f7ef898fc3eb76"
 
 [[package]]
 name = "arrow-format"
-version = "0.6.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "216249afef413d7e9e9b4b543e73b3e371ace3a812380af98f1c871521572cdd"
+checksum = "8df5d25bc6d676271277120c41ef28760fe0a9f070677a58db621c0f983f9c20"
 dependencies = [
  "planus",
  "serde",
@@ -68,13 +68,13 @@ dependencies = [
 [[package]]
 name = "arrow2"
 version = "0.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5feafd6df4e3f577529e6aa2b9b7cdb3c9fe8e8f66ebc8dc29abbe71a7e968f0"
+source = "git+https://github.com/jorgecarleitao/arrow2?rev=b946b188dc0d5032e989c34e2039d1c835a26650#b946b188dc0d5032e989c34e2039d1c835a26650"
 dependencies = [
  "arrow-format",
  "base64",
  "bytemuck",
  "chrono",
+ "dyn-clone",
  "either",
  "fallible-streaming-iterator",
  "futures",
@@ -308,6 +308,12 @@ dependencies = [
  "redox_users",
  "winapi",
 ]
+
+[[package]]
+name = "dyn-clone"
+version = "1.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "140206b78fb2bc3edbcfc9b5ccbd0b30699cfe8d348b8b31b330e47df5291a5a"
 
 [[package]]
 name = "either"
@@ -882,18 +888,17 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "planus"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bffebaf174d6cad46a5f0f1bb1c45c6eb509571688bcb18dfab217f3c9f9b151"
+checksum = "fc1691dd09e82f428ce8d6310bd6d5da2557c82ff17694d2a32cad7242aea89f"
 dependencies = [
  "array-init-cursor",
 ]
 
 [[package]]
 name = "polars"
-version = "0.22.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d175c67e80ceaef7219258cfc3a8686531d9510875b0cefa25404e5b80a7933"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "polars-core",
  "polars-io",
@@ -904,9 +909,8 @@ dependencies = [
 
 [[package]]
 name = "polars-arrow"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f66c7d3da2c10a09131294dbe7802fac792f570be639dc6ebf207bfc3e144287"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "arrow2",
  "hashbrown 0.12.0",
@@ -916,9 +920,8 @@ dependencies = [
 
 [[package]]
 name = "polars-core"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f7f15f443a90d5367c4fbbb151e203f03b5b96055c8b928c6bc30655a3644f13"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "ahash",
  "anyhow",
@@ -939,9 +942,8 @@ dependencies = [
 
 [[package]]
 name = "polars-io"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "058d0a847ce5009b974c69ec878ed416e306436f21b626543019f738cee12315"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "ahash",
  "anyhow",
@@ -967,9 +969,8 @@ dependencies = [
 
 [[package]]
 name = "polars-lazy"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dad86a4ce7e32540ff12089bce6f77270fd133a5b263328a92be61defdd6b151"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "ahash",
  "glob",
@@ -985,9 +986,8 @@ dependencies = [
 
 [[package]]
 name = "polars-ops"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "030ecd473be113cd0264f1bc19de39a844fa12fa565db9dc52c859cbc292cf04"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "polars-arrow",
  "polars-core",
@@ -995,9 +995,8 @@ dependencies = [
 
 [[package]]
 name = "polars-time"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94047b20d2da3bcc55c421be187a0c6f316cf1eea7fe7ed7347c1160a32d017c"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "chrono",
  "lexical",
@@ -1008,9 +1007,8 @@ dependencies = [
 
 [[package]]
 name = "polars-utils"
-version = "0.22.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcd3d0238462d5d9f7fbeaaea46e73ed4d58f6fae8b70d53cbe51d7538cc43f5"
+version = "0.22.6"
+source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
 dependencies = [
  "parking_lot",
  "rayon",

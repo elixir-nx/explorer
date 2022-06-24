@@ -46,6 +46,13 @@ defmodule Explorer.Backend.DataFrame do
   @callback to_ipc(df, filename :: String.t(), compression :: String.t()) ::
               result(String.t())
 
+  @callback from_ipc_streaming(
+              filename :: String.t(),
+              columns :: list(String.t()) | list(atom()) | list(integer()) | nil
+            ) :: result(df)
+  @callback to_ipc_streaming(df, filename :: String.t(), compression :: String.t()) ::
+              result(String.t())
+
   @callback from_ndjson(
               filename :: String.t(),
               infer_schema_length :: integer(),

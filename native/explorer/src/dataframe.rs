@@ -156,6 +156,41 @@ pub fn df_write_ipc(
 }
 
 #[rustler::nif(schedule = "DirtyIo")]
+pub fn df_read_ipc_stream(
+    filename: &str,
+    columns: Option<Vec<String>>,
+    projection: Option<Vec<usize>>,
+) -> Result<ExDataFrame, ExplorerError> {
+    let f = File::open(filename)?;
+    let df = IpcStreamReader::new(f)
+        .with_columns(columns)
+        .with_projection(projection)
+        .finish()?;
+    Ok(ExDataFrame::new(df))
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
+pub fn df_write_ipc_stream(
+    data: ExDataFrame,
+    filename: &str,
+    compression: Option<&str>,
+) -> Result<(), ExplorerError> {
+    let df = &data.resource.0;
+    // Select the compression algorithm.
+    let compression = match compression {
+        Some("LZ4") => Some(IpcCompression::LZ4),
+        Some("ZSTD") => Some(IpcCompression::ZSTD),
+        _ => None,
+    };
+
+    let mut file = File::create(filename).expect("could not create file");
+    IpcStreamWriter::new(&mut file)
+        .with_compression(compression)
+        .finish(&mut df.clone())?;
+    Ok(())
+}
+
+#[rustler::nif(schedule = "DirtyIo")]
 pub fn df_read_ndjson(
     filename: &str,
     infer_schema_length: Option<usize>,
