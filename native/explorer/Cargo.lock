@@ -898,7 +898,7 @@ dependencies = [
 [[package]]
 name = "polars"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "polars-core",
  "polars-io",
@@ -910,7 +910,7 @@ dependencies = [
 [[package]]
 name = "polars-arrow"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "arrow2",
  "hashbrown 0.12.0",
@@ -921,7 +921,7 @@ dependencies = [
 [[package]]
 name = "polars-core"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "ahash",
  "anyhow",
@@ -943,7 +943,7 @@ dependencies = [
 [[package]]
 name = "polars-io"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "ahash",
  "anyhow",
@@ -970,7 +970,7 @@ dependencies = [
 [[package]]
 name = "polars-lazy"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "ahash",
  "glob",
@@ -987,7 +987,7 @@ dependencies = [
 [[package]]
 name = "polars-ops"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "polars-arrow",
  "polars-core",
@@ -996,7 +996,7 @@ dependencies = [
 [[package]]
 name = "polars-time"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "chrono",
  "lexical",
@@ -1008,7 +1008,7 @@ dependencies = [
 [[package]]
 name = "polars-utils"
 version = "0.22.6"
-source = "git+https://github.com/joshuataylor/polars?branch=explorer-ipc-streaming-temporary#506f24766b53959d2e5b517fc71f0b123f7d5504"
+source = "git+https://github.com/pola-rs/polars?rev=c21736453c3ee7f6a4a31f0aea080be9dbca4196#c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 dependencies = [
  "parking_lot",
  "rayon",

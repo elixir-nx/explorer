@@ -23,8 +23,8 @@ thiserror = "1"
 mimalloc = { version = "*", default-features = false }
 
 [dependencies.polars]
-git = "https://github.com/joshuataylor/polars"
-branch = "explorer-ipc-streaming-temporary"
+git = "https://github.com/pola-rs/polars"
+rev = "c21736453c3ee7f6a4a31f0aea080be9dbca4196"
 default-features = false
 features = [
   "cross_join",
