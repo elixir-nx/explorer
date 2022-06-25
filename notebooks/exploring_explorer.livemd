@@ -537,7 +537,9 @@ tidy_names = fn name ->
   |> String.replace(" ", "_")
 end
 
-df |> DataFrame.pivot_wider("country", "total", id_columns: ["year"]) |> DataFrame.rename(tidy_names)
+df
+|> DataFrame.pivot_wider("country", "total", id_columns: ["year"])
+|> DataFrame.rename_with(tidy_names)
 ```
 
 ### Joins
