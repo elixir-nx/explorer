@@ -38,7 +38,15 @@ fn on_load(env: Env, _info: Term) -> bool {
 
 mod atoms {
     rustler::atoms! {
-        calendar = "Elixir.Calendar.ISO"
+        calendar_atom = "Elixir.Calendar.ISO",
+        hour,
+        minute,
+        second,
+        day,
+        month,
+        year,
+        microsecond,
+        calendar
     }
 }
 

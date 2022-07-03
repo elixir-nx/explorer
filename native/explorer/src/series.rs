@@ -1,14 +1,18 @@
-use polars::prelude::*;
-use rand::seq::IteratorRandom;
-use rand::{Rng, SeedableRng};
-use rand_pcg::Pcg64;
-use rustler::{Encoder, Env, Term};
-use std::result::Result;
-
+use crate::atoms::{calendar, calendar_atom, day, month, year};
 use crate::{
     datatypes::{ExDate, ExDateTime},
     ExDataFrame, ExSeries, ExSeriesRef, ExplorerError,
 };
+use chrono::Datelike;
+use polars::export::arrow::temporal_conversions::date32_to_date;
+use polars::prelude::*;
+use rand::seq::IteratorRandom;
+use rand::{Rng, SeedableRng};
+use rand_pcg::Pcg64;
+use rustler::types::atom::__struct__;
+use rustler::wrapper::map;
+use rustler::{Atom, Encoder, Env, Term};
+use std::result::Result;
 
 pub(crate) fn to_series_collection(s: Vec<ExSeries>) -> Vec<Series> {
     s.into_iter().map(|c| c.resource.0.clone()).collect()
@@ -552,7 +556,38 @@ fn term_from_value<'b>(v: AnyValue, env: Env<'b>) -> Term<'b> {
         AnyValue::Utf8(v) => Some(v).encode(env),
         AnyValue::Int64(v) => Some(v).encode(env),
         AnyValue::Float64(v) => Some(v).encode(env),
-        AnyValue::Date(v) => Some(ExDate::from(v)).encode(env),
+        AnyValue::Date(v) => {
+            // get the date value
+            let naive_date = date32_to_date(v);
+
+            // Here we build the Date struct manually, as it's much faster than using Date NifStruct
+            // This is because we already have the keys (we know this at compile time), and the types,
+            // so we can build the struct directly.
+            let date_struct_keys = &[
+                __struct__().encode(env).as_c_arg(),
+                calendar().encode(env).as_c_arg(),
+                day().encode(env).as_c_arg(),
+                month().encode(env).as_c_arg(),
+                year().encode(env).as_c_arg(),
+            ];
+
+            // This sets the value in the map to "Elixir.Calendar.ISO", which must be an atom.
+            let calendar_iso_c_arg = calendar_atom().encode(env).as_c_arg();
+
+            // This is used for the map to know that it's a struct. Define it here so it's not redefined in the loop.
+            let date_module_atom = Atom::from_str(env, "Elixir.Date")
+                .unwrap()
+                .encode(env)
+                .as_c_arg();
+
+            crate::datatypes::encode_date!(
+                naive_date,
+                date_struct_keys,
+                calendar_iso_c_arg,
+                date_module_atom,
+                env
+            )
+        }
         AnyValue::Datetime(v, TimeUnit::Microseconds, None) => {
             Some(ExDateTime::from(v)).encode(env)
         }

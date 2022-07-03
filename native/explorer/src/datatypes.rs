@@ -4,9 +4,12 @@ use rustler::resource::ResourceArc;
 use rustler::{Atom, Encoder, Env, NifStruct, Term};
 use std::convert::TryInto;
 
-use std::result::Result;
-
 use crate::atoms;
+use crate::atoms::{calendar, calendar_atom, day, month, year};
+use rustler::types::atom::__struct__;
+use rustler::wrapper::list::make_list;
+use rustler::wrapper::{map, NIF_TERM};
+use std::result::Result;
 
 pub struct ExDataFrameRef(pub DataFrame);
 pub struct ExLazyFrameRef(pub LazyFrame);
@@ -108,13 +111,37 @@ impl From<ExDate> for NaiveDate {
 impl From<NaiveDate> for ExDate {
     fn from(d: NaiveDate) -> ExDate {
         ExDate {
-            calendar: atoms::calendar(),
+            calendar: atoms::calendar_atom(),
             day: d.day(),
             month: d.month(),
             year: d.year(),
         }
     }
 }
+
+macro_rules! encode_date {
+    ($dt: ident, $date_struct_keys: ident, $calendar_iso_c_arg: ident, $date_module_atom: ident, $env: ident) => {
+        unsafe {
+            Term::new(
+                $env,
+                map::make_map_from_arrays(
+                    $env.as_c_arg(),
+                    $date_struct_keys,
+                    &[
+                        $date_module_atom,
+                        $calendar_iso_c_arg,
+                        $dt.day().encode($env).as_c_arg(),
+                        $dt.month().encode($env).as_c_arg(),
+                        $dt.year().encode($env).as_c_arg(),
+                    ],
+                )
+                .unwrap(),
+            )
+        }
+    };
+}
+
+pub(crate) use encode_date;
 
 #[derive(NifStruct, Copy, Clone, Debug)]
 #[module = "NaiveDateTime"]
@@ -175,7 +202,7 @@ impl From<ExDateTime> for NaiveDateTime {
 impl From<NaiveDateTime> for ExDateTime {
     fn from(dt: NaiveDateTime) -> Self {
         ExDateTime {
-            calendar: atoms::calendar(),
+            calendar: atoms::calendar_atom(),
             day: dt.day(),
             month: dt.month(),
             year: dt.year(),
@@ -188,12 +215,46 @@ impl From<NaiveDateTime> for ExDateTime {
 }
 
 fn encode_date_series<'b>(s: &Series, env: Env<'b>) -> Term<'b> {
-    s.date()
+    // Here we build the Date struct manually, as it's much faster than using Date NifStruct
+    // This is because we already have the keys (we know this at compile time), and the types,
+    // so we can build the struct directly.
+    let date_struct_keys = &[
+        __struct__().encode(env).as_c_arg(),
+        calendar().encode(env).as_c_arg(),
+        day().encode(env).as_c_arg(),
+        month().encode(env).as_c_arg(),
+        year().encode(env).as_c_arg(),
+    ];
+
+    // This sets the value in the map to "Elixir.Calendar.ISO", which must be an atom.
+    let calendar_iso_c_arg = calendar_atom().encode(env).as_c_arg();
+
+    // This is used for the map to know that it's a struct. Define it here so it's not redefined in the loop.
+    let date_module_atom = Atom::from_str(env, "Elixir.Date")
+        .unwrap()
+        .encode(env)
+        .as_c_arg();
+
+    let items = s
+        .date()
         .unwrap()
         .as_date_iter()
-        .map(|d| d.map(ExDate::from))
-        .collect::<Vec<Option<ExDate>>>()
-        .encode(env)
+        .map(|d| {
+            d.map(|naive_date| {
+                encode_date!(
+                    naive_date,
+                    date_struct_keys,
+                    calendar_iso_c_arg,
+                    date_module_atom,
+                    env
+                )
+            })
+            .encode(env)
+            .as_c_arg()
+        })
+        .collect::<Vec<NIF_TERM>>();
+
+    unsafe { Term::new(env, make_list(env.as_c_arg(), &items)) }
 }
 
 fn encode_datetime_series<'b>(s: &Series, env: Env<'b>) -> Term<'b> {
