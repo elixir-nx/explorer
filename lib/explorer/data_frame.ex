@@ -71,6 +71,7 @@ defmodule Explorer.DataFrame do
   - delimited files (such as CSV)
   - [Parquet](https://databricks.com/glossary/what-is-parquet)
   - [Arrow IPC](https://arrow.apache.org/docs/format/Columnar.html#ipc-file-format)
+  - [Arrow Streaming IPC](https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format)
   - [Newline Delimited JSON](http://ndjson.org)
 
   The convention Explorer uses is to have `from_*` and `to_*` functions to read and write
@@ -412,6 +413,75 @@ defmodule Explorer.DataFrame do
     backend = backend_from_options!(opts)
 
     backend.to_ipc(
+      df,
+      filename,
+      opts[:compression]
+    )
+  end
+
+  @doc """
+  Reads an IPC Streaming file into a dataframe.
+
+  ## Options
+
+    * `columns` - List with the name or index of columns to be selected. Defaults to all columns.
+  """
+  @doc type: :io
+  @spec from_ipc_stream(filename :: String.t()) :: {:ok, DataFrame.t()} | {:error, term()}
+  def from_ipc_stream(filename, opts \\ []) do
+    opts =
+      Keyword.validate!(opts,
+        columns: nil
+      )
+
+    backend = backend_from_options!(opts)
+
+    backend.from_ipc_stream(
+      filename,
+      opts[:columns]
+    )
+  end
+
+  @doc """
+  Similar to `from_ipc_stream/2` but raises if there is a problem reading the IPC Stream file.
+  """
+  @doc type: :io
+  @spec from_ipc_stream!(filename :: String.t(), opts :: Keyword.t()) :: DataFrame.t()
+  def from_ipc_stream!(filename, opts \\ []) do
+    case from_ipc_stream(filename, opts) do
+      {:ok, df} -> df
+      {:error, error} -> raise "#{error}"
+    end
+  end
+
+  @doc """
+  Writes a dataframe to a IPC Stream file.
+
+  Arrow IPC Streams provide a streaming protocol or “format" for sending an arbitrary length sequence of record batches.
+  The format must be processed from start to end, and does not support random access.
+  You can read more information about the difference between IPC and IPC Streaming files on the
+  [https://arrow.apache.org/docs/format/Columnar.html#ipc-streaming-format](Apache Arrow Documentation(#ipc-streaming-format) page.
+
+  If you want to write a dataframe IPC, it's recommended to use IPC instead, unless you really need to as using IPC allows
+  supports random access, and thus is very useful when used with memory maps.
+
+  ## Options
+
+    * `compression` - Sets the algorithm used to compress the IPC file.
+      It accepts `"ZSTD"` or `"LZ4"` compression. (default: `nil`)
+  """
+  @doc type: :io
+  @spec to_ipc_stream(df :: DataFrame.t(), filename :: String.t()) ::
+          {:ok, String.t()} | {:error, term()}
+  def to_ipc_stream(df, filename, opts \\ []) do
+    opts =
+      Keyword.validate!(opts,
+        compression: nil
+      )
+
+    backend = backend_from_options!(opts)
+
+    backend.to_ipc_stream(
       df,
       filename,
       opts[:compression]
