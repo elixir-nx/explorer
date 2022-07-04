@@ -5,7 +5,8 @@ use rustler::{Atom, Encoder, Env, NifStruct, Term};
 use std::convert::TryInto;
 
 use crate::atoms;
-use crate::atoms::{calendar, calendar_atom, day, month, year};
+use crate::atoms::{calendar, calendar_atom, day, hour, microsecond, minute, month, second, year};
+
 use rustler::types::atom::__struct__;
 use rustler::wrapper::list::make_list;
 use rustler::wrapper::{map, NIF_TERM};
@@ -141,7 +142,34 @@ macro_rules! encode_date {
     };
 }
 
+macro_rules! encode_datetime {
+    ($dt: ident, $datetime_struct_keys: ident, $calendar_iso_c_arg: ident, $datetime_module_atom: ident, $env: ident) => {
+        unsafe {
+            Term::new(
+                $env,
+                map::make_map_from_arrays(
+                    $env.as_c_arg(),
+                    $datetime_struct_keys,
+                    &[
+                        $datetime_module_atom,
+                        $calendar_iso_c_arg,
+                        $dt.year().encode($env).as_c_arg(),
+                        $dt.month().encode($env).as_c_arg(),
+                        $dt.day().encode($env).as_c_arg(),
+                        $dt.hour().encode($env).as_c_arg(),
+                        $dt.minute().encode($env).as_c_arg(),
+                        $dt.second().encode($env).as_c_arg(),
+                        ($dt.timestamp_subsec_micros(), 6).encode($env).as_c_arg(),
+                    ],
+                )
+                .unwrap(),
+            )
+        }
+    };
+}
+
 pub(crate) use encode_date;
+pub(crate) use encode_datetime;
 
 #[derive(NifStruct, Copy, Clone, Debug)]
 #[module = "NaiveDateTime"]
@@ -156,22 +184,24 @@ pub struct ExDateTime {
     pub microsecond: (u32, u32),
 }
 
+#[inline]
+fn timestamp_to_datetime(microseconds: i64) -> NaiveDateTime {
+    let sign = microseconds.signum();
+    let seconds = match sign {
+        -1 => microseconds / 1_000_000 - 1,
+        _ => microseconds / 1_000_000,
+    };
+    let remainder = match sign {
+        -1 => 1_000_000 + microseconds % 1_000_000,
+        _ => microseconds % 1_000_000,
+    };
+    let nanoseconds = remainder.abs() * 1_000;
+    NaiveDateTime::from_timestamp(seconds, nanoseconds.try_into().unwrap())
+}
+
 impl From<i64> for ExDateTime {
     fn from(microseconds: i64) -> Self {
-        let sign = microseconds.signum();
-        let seconds = match sign {
-            -1 => microseconds / 1_000_000 - 1,
-            _ => microseconds / 1_000_000,
-        };
-        let remainder = match sign {
-            -1 => 1_000_000 + microseconds % 1_000_000,
-            _ => microseconds % 1_000_000,
-        };
-        let nanoseconds = remainder.abs() * 1_000;
-        ExDateTime::from(NaiveDateTime::from_timestamp(
-            seconds,
-            nanoseconds.try_into().unwrap(),
-        ))
+        timestamp_to_datetime(microseconds).into()
     }
 }
 
@@ -257,22 +287,60 @@ fn encode_date_series<'b>(s: &Series, env: Env<'b>) -> Term<'b> {
     unsafe { Term::new(env, make_list(env.as_c_arg(), &items)) }
 }
 
-fn encode_datetime_series<'b>(s: &Series, env: Env<'b>) -> Term<'b> {
-    s.datetime()
-        .unwrap()
-        .into_iter()
-        .map(|microsecond| microsecond.map(ExDateTime::from))
-        .collect::<Vec<Option<ExDateTime>>>()
-        .encode(env)
-}
+#[inline]
+fn encode_datetime_series<'b>(s: &Series, time_unit: TimeUnit, env: Env<'b>) -> Term<'b> {
+    // Here we build the NaiveDateTime struct manually, as it's faster than using NifStructs.
+    // It's faster because we already have the keys (we know this at compile time), and the type.
+    let datetime_struct_keys = &[
+        __struct__().encode(env).as_c_arg(),
+        calendar().encode(env).as_c_arg(),
+        year().encode(env).as_c_arg(),
+        month().encode(env).as_c_arg(),
+        day().encode(env).as_c_arg(),
+        hour().encode(env).as_c_arg(),
+        minute().encode(env).as_c_arg(),
+        second().encode(env).as_c_arg(),
+        microsecond().encode(env).as_c_arg(),
+    ];
 
-fn encode_datetime_ms_series<'b>(s: &Series, env: Env<'b>) -> Term<'b> {
-    s.datetime()
+    // This sets the value in the map to "Elixir.Calendar.ISO", which must be an atom.
+    let calendar_iso_c_arg = calendar_atom().encode(env).as_c_arg();
+
+    // This is used for the map to set __struct__ as NaiveDateTime.
+    let datetime_module_atom = Atom::from_str(env, "Elixir.NaiveDateTime")
         .unwrap()
-        .into_iter()
-        .map(|micro| micro.map(|milli| milli * 1_000).map(ExDateTime::from))
-        .collect::<Vec<Option<ExDateTime>>>()
         .encode(env)
+        .as_c_arg();
+
+    let items = s
+        .datetime()
+        .unwrap()
+        .downcast_iter()
+        .flat_map(move |iter| {
+            iter.into_iter().map(move |opt_v| {
+                opt_v.copied().map(|x| match time_unit {
+                    TimeUnit::Milliseconds => timestamp_to_datetime(x * 1_000),
+                    TimeUnit::Microseconds => timestamp_to_datetime(x),
+                    _ => unreachable!(),
+                })
+            })
+        })
+        .map(|d| {
+            d.map(|naive_datetime| {
+                encode_datetime!(
+                    naive_datetime,
+                    datetime_struct_keys,
+                    calendar_iso_c_arg,
+                    datetime_module_atom,
+                    env
+                )
+            })
+                .encode(env)
+                .as_c_arg()
+        })
+        .collect::<Vec<NIF_TERM>>();
+
+    unsafe { Term::new(env, make_list(env.as_c_arg(), &items)) }
 }
 
 macro_rules! encode {
@@ -325,9 +393,13 @@ impl Encoder for ExSeriesRef {
             DataType::UInt32 => encode!(s, env, u32),
             DataType::Float64 => encode!(s, env, f64),
             DataType::Date => encode_date_series(s, env),
-            DataType::Datetime(TimeUnit::Microseconds, None) => encode_datetime_series(s, env),
+            DataType::Datetime(TimeUnit::Microseconds, None) => {
+                encode_datetime_series(s, TimeUnit::Microseconds, env)
+            }
             // Note that "ms" is only used from IO readers/parsers (like CSV)
-            DataType::Datetime(TimeUnit::Milliseconds, None) => encode_datetime_ms_series(s, env),
+            DataType::Datetime(TimeUnit::Milliseconds, None) => {
+                encode_datetime_series(s, TimeUnit::Milliseconds, env)
+            }
             DataType::List(t) if t as &DataType == &DataType::UInt32 => {
                 encode_list!(s, env, u32, u32)
             }

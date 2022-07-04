@@ -181,7 +181,8 @@ defmodule Explorer.PolarsBackend.DataFrame do
 
   @impl true
   def from_tabular(tabular) do
-    {columns, %{columns: keys}} = Table.to_columns_with_info(tabular)
+    {_, %{columns: keys}, _} = reader = init_reader!(tabular)
+    columns = Table.to_columns(reader)
 
     keys
     |> Enum.map(fn key ->
@@ -190,6 +191,12 @@ defmodule Explorer.PolarsBackend.DataFrame do
       series_from_list!(column_name, values)
     end)
     |> from_series_list()
+  end
+
+  defp init_reader!(tabular) do
+    with :none <- Table.Reader.init(tabular) do
+      raise ArgumentError, "expected valid tabular data, but got: #{inspect(tabular)}"
+    end
   end
 
   @impl true

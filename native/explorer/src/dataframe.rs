@@ -1,7 +1,8 @@
 use polars::prelude::*;
 
+use rustler::{Binary, Env, NewBinary};
 use std::fs::File;
-use std::io::BufReader;
+use std::io::{BufReader, BufWriter};
 use std::result::Result;
 
 use crate::series::{to_ex_series_collection, to_series_collection};
@@ -74,34 +75,40 @@ fn dtype_from_str(dtype: &str) -> Result<DataType, ExplorerError> {
 
 #[rustler::nif(schedule = "DirtyIo")]
 pub fn df_read_parquet(filename: &str) -> Result<ExDataFrame, ExplorerError> {
-    let f = File::open(filename)?;
-    let df = ParquetReader::new(f).finish()?;
+    let file = File::open(filename)?;
+    let buf_reader = BufReader::new(file);
+    let df = ParquetReader::new(buf_reader).finish()?;
     Ok(ExDataFrame::new(df))
 }
 
 #[rustler::nif(schedule = "DirtyIo")]
 pub fn df_write_parquet(data: ExDataFrame, filename: &str) -> Result<(), ExplorerError> {
     let df = &data.resource.0;
-    let file = File::create(filename).expect("could not create file");
-    ParquetWriter::new(file).finish(&mut df.clone())?;
+    let file = File::create(filename)?;
+    let mut buf_writer = BufWriter::new(file);
+    ParquetWriter::new(&mut buf_writer).finish(&mut df.clone())?;
     Ok(())
 }
 
 #[rustler::nif(schedule = "DirtyCpu")]
 pub fn df_to_csv(
+    env: Env,
     data: ExDataFrame,
     has_headers: bool,
     delimiter: u8,
-) -> Result<String, ExplorerError> {
+) -> Result<Binary, ExplorerError> {
     let df = &data.resource.0;
-    let mut buf: Vec<u8> = Vec::with_capacity(81920);
+    let mut buf = vec![];
+
     CsvWriter::new(&mut buf)
         .has_header(has_headers)
         .with_delimiter(delimiter)
         .finish(&mut df.clone())?;
 
-    let s = String::from_utf8(buf)?;
-    Ok(s)
+    let mut values_binary = NewBinary::new(env, buf.len());
+    values_binary.copy_from_slice(&buf);
+
+    Ok(values_binary.into())
 }
 
 #[rustler::nif(schedule = "DirtyIo")]
@@ -112,8 +119,9 @@ pub fn df_to_csv_file(
     delimiter: u8,
 ) -> Result<(), ExplorerError> {
     let df = &data.resource.0;
-    let mut f = File::create(filename)?;
-    CsvWriter::new(&mut f)
+    let file = File::create(filename)?;
+    let mut buf_writer = BufWriter::new(file);
+    CsvWriter::new(&mut buf_writer)
         .has_header(has_headers)
         .with_delimiter(delimiter)
         .finish(&mut df.clone())?;
@@ -126,8 +134,9 @@ pub fn df_read_ipc(
     columns: Option<Vec<String>>,
     projection: Option<Vec<usize>>,
 ) -> Result<ExDataFrame, ExplorerError> {
-    let f = File::open(filename)?;
-    let df = IpcReader::new(f)
+    let file = File::open(filename)?;
+    let buf_reader = BufReader::new(file);
+    let df = IpcReader::new(buf_reader)
         .with_columns(columns)
         .with_projection(projection)
         .finish()?;
@@ -148,8 +157,9 @@ pub fn df_write_ipc(
         _ => None,
     };
 
-    let mut file = File::create(filename).expect("could not create file");
-    IpcWriter::new(&mut file)
+    let file = File::create(filename)?;
+    let mut buf_writer = BufWriter::new(file);
+    IpcWriter::new(&mut buf_writer)
         .with_compression(compression)
         .finish(&mut df.clone())?;
     Ok(())
@@ -210,8 +220,9 @@ pub fn df_read_ndjson(
 #[rustler::nif(schedule = "DirtyIo")]
 pub fn df_write_ndjson(data: ExDataFrame, filename: &str) -> Result<(), ExplorerError> {
     let df = &data.resource.0;
-    let file = File::create(filename).expect("could not create file");
-    JsonWriter::new(file).finish(&mut df.clone())?;
+    let file = File::create(filename)?;
+    let mut buf_writer = BufWriter::new(file);
+    JsonWriter::new(&mut buf_writer).finish(&mut df.clone())?;
     Ok(())
 }
 
