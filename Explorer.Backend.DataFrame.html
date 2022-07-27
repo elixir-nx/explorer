@@ -10,7 +10,7 @@
     <title>Explorer.Backend.DataFrame — Explorer v0.3.0-dev</title>
     <link rel="stylesheet" href="dist/elixir-d5ff82e6b0f5651c0ac0.css" />
 
-    <script src="dist/sidebar_items-f5f615bba2.js"></script>
+    <script src="dist/sidebar_items-f83406882c.js"></script>
 
       <script src="docs_config.js"></script>
 
@@ -288,7 +288,7 @@ Explorer
 
       <div class="summary-row">
         <div class="summary-signature">
-          <a href="#c:filter_with/2" translate="no">filter_with(df, function)</a>
+          <a href="#c:filter_with/3" translate="no">filter_with(df, out_df, lazy_series)</a>
 
         </div>
 
@@ -487,6 +487,14 @@ Explorer
       <div class="summary-row">
         <div class="summary-signature">
           <a href="#c:summarise/3" translate="no">summarise(df, out_df, aggregations)</a>
+
+        </div>
+
+      </div>
+
+      <div class="summary-row">
+        <div class="summary-signature">
+          <a href="#c:summarise_with/3" translate="no">summarise_with(df, out_df, aggregations)</a>
 
         </div>
 
@@ -1156,14 +1164,14 @@ Callbacks
 
   </section>
 </section>
-<section class="detail" id="c:filter_with/2">
+<section class="detail" id="c:filter_with/3">
 
   <div class="detail-header">
-    <a href="#c:filter_with/2" class="detail-link" title="Link to this callback">
+    <a href="#c:filter_with/3" class="detail-link" title="Link to this callback">
       <i class="ri-link-m" aria-hidden="true"></i>
       <span class="sr-only">Link to this callback</span>
     </a>
-    <h1 class="signature" translate="no">filter_with(df, function)</h1>
+    <h1 class="signature" translate="no">filter_with(df, out_df, lazy_series)</h1>
 
       <a href="https://github.com/elixir-nx/explorer/blob/v0.3.0-dev/lib/explorer/backend/data_frame.ex#L86" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
@@ -1177,7 +1185,7 @@ Callbacks
 
       <div class="specs">
 
-          <pre translate="no"><span class="attribute">@callback</span> filter_with(<a href="#t:df/0">df</a>(), (<a href="#t:lazy_frame/0">lazy_frame</a>() -&gt; <a href="#t:lazy_series/0">lazy_series</a>())) :: <a href="#t:df/0">df</a>()</pre>
+          <pre translate="no"><span class="attribute">@callback</span> filter_with(<a href="#t:df/0">df</a>(), out_df :: <a href="#t:df/0">df</a>(), <a href="#t:lazy_series/0">lazy_series</a>()) :: <a href="#t:df/0">df</a>()</pre>
 
       </div>
 
@@ -1826,6 +1834,38 @@ Callbacks
 
   </section>
 </section>
+<section class="detail" id="c:summarise_with/3">
+
+  <div class="detail-header">
+    <a href="#c:summarise_with/3" class="detail-link" title="Link to this callback">
+      <i class="ri-link-m" aria-hidden="true"></i>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature" translate="no">summarise_with(df, out_df, aggregations)</h1>
+
+      <a href="https://github.com/elixir-nx/explorer/blob/v0.3.0-dev/lib/explorer/backend/data_frame.ex#L130" class="view-source" rel="help" title="View Source">
+       <i class="ri-code-s-slash-line" aria-hidden="true"></i>
+       <span class="sr-only">View Source</span>
+     </a>
+
+
+  </div>
+
+  <section class="docstring">
+
+      <div class="specs">
+
+          <pre translate="no"><span class="attribute">@callback</span> summarise_with(
+  <a href="#t:df/0">df</a>(),
+  out_df :: <a href="#t:df/0">df</a>(),
+  aggregations :: [{<a href="#t:column_name/0">column_name</a>(), <a href="#t:lazy_series/0">lazy_series</a>()}]
+) :: <a href="#t:df/0">df</a>()</pre>
+
+      </div>
+
+
+  </section>
+</section>
 <section class="detail" id="c:tail/2">
 
   <div class="detail-header">
@@ -2089,7 +2129,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">inspect(df, backend, n_rows, inspect_opts, opts \\ [])</h1>
 
-      <a href="https://github.com/elixir-nx/explorer/blob/v0.3.0-dev/lib/explorer/backend/data_frame.ex#L152" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/elixir-nx/explorer/blob/v0.3.0-dev/lib/explorer/backend/data_frame.ex#L155" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
@@ -2111,7 +2151,7 @@ Functions
     </a>
     <h1 class="signature" translate="no">new(data, names, dtypes)</h1>
 
-      <a href="https://github.com/elixir-nx/explorer/blob/v0.3.0-dev/lib/explorer/backend/data_frame.ex#L136" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/elixir-nx/explorer/blob/v0.3.0-dev/lib/explorer/backend/data_frame.ex#L139" class="view-source" rel="help" title="View Source">
        <i class="ri-code-s-slash-line" aria-hidden="true"></i>
        <span class="sr-only">View Source</span>
      </a>
